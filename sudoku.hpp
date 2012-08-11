@@ -18,6 +18,7 @@
 #ifndef SUDOKU_H_
 #define SUDOKU_H_
 
+#include <cctype>
 #include <vector>
 #include <string>
 #include <ostream>
@@ -131,7 +132,7 @@ public:
             throw std::logic_error("Representation error !");
         }
 
-        std::transform(grid.begin(), grid.end(), grid.begin(), tolower);
+        std::transform(grid.begin(), grid.end(), grid.begin(), ::tolower);
 
         for (uint16 i = 0; i < num_cells; i++) {
             uint16 row = i / size;
