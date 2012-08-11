@@ -28,15 +28,17 @@
 #include "types.hpp"
 #include "subscripts.hpp"
 
-template <typename M, template <typename M> class Matrix>
+template <class Matrix>
 class Proxy {
 public:
-    Proxy(Matrix<M>& matrix, const Subscript<uint32>& subscript) :
+    typedef typename Matrix::value_type value_type;
+
+    Proxy(Matrix& matrix, const Subscript<uint32>& subscript) :
         matrix(matrix), subscript(subscript) {
     }
 
     Proxy& operator=(const Proxy& rhs) {
-        matrix.set_value(subscript, M(rhs));
+        matrix.set_value(subscript, value_type(rhs));
         return *this;
     }
 
@@ -48,28 +50,30 @@ public:
 
     template <typename A>
     bool operator==(const A& rhs) const {
-        return matrix.value_at(subscript) == M(rhs);
+        return matrix.value_at(subscript) == value_type(rhs);
     }
 
     template <typename A>
     bool operator!=(const A& rhs) const {
-        return matrix.value_at(subscript) != M(rhs);
+        return matrix.value_at(subscript) != value_type(rhs);
     }
 
     /* ... */
 
-    operator const M&() const {
+    operator const value_type&() const {
         return matrix.value_at(subscript);
     }
 
 private:
-    Matrix<M>& matrix;
+    Matrix& matrix;
     Subscript<uint32> subscript;
 };
 
 template <typename T>
 class MappedMatrix {
 public:
+    typedef T value_type;
+
     MappedMatrix(size_t row, size_t col) :
         size(make_subscript(row, col)), zero() {
         data.resize(row);
@@ -88,18 +92,18 @@ public:
         return value_at(make_subscript(row, col));
     }
 
-    Proxy<T, MappedMatrix> operator()(uint32 row, uint32 col) {
+    Proxy<MappedMatrix> operator()(uint32 row, uint32 col) {
         if (row >= size.row || col >= size.col) {
             throw std::invalid_argument("Invalid subscripts.");
         }
-        return Proxy<T, MappedMatrix>(*this, make_subscript(row, col));
+        return Proxy<MappedMatrix>(*this, make_subscript(row, col));
     }
 
     uint32 rows() const { return size.row; }
     uint32 cols() const { return size.col; }
 
 private:
-    template <typename, template <typename> class>
+    template <class M>
     friend class Proxy;
 
     //! \brief Set the value of an element at a given subscript.
